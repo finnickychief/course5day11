@@ -39,10 +39,37 @@ class Blackjack {
       ...this.deck,
       ...this.deck
     ];
+
     // Sort takes a callback, and if the value negative it means the item on the left should be further left in the array
     // If the value is positive, the item should be further right in the array
     // Because we're returning a random number between -.5 and .5 the result should end up chaotic/random
     this.deck.sort((a, b) => 0.5 - Math.random());
+
+    this.deck[this.deck.length - 1] = {
+      numVal: 10,
+      cardValue: 'King',
+      fileName: 'King-of-Hearts.png'
+    };
+    this.deck[this.deck.length - 2] = {
+      numVal: 10,
+      cardValue: 'King',
+      fileName: 'King-of-Hearts.png'
+    };
+    this.deck[this.deck.length - 3] = {
+      numVal: 10,
+      cardValue: 'King',
+      fileName: 'King-of-Hearts.png'
+    };
+    this.deck[this.deck.length - 4] = {
+      numVal: 10,
+      cardValue: 'King',
+      fileName: 'King-of-Hearts.png'
+    };
+    // this.deck[this.deck.length - 5] = {
+    //   numVal: 10,
+    //   cardValue: 'King',
+    //   fileName: 'King-of-Hearts.png'
+    // };
 
     console.log(this.deck);
 
@@ -140,15 +167,15 @@ class Blackjack {
       this.playerScoreBox.innerHTML = 'Player: ' + this.playerScore;
       console.log(this.playerHand);
 
-      // Deal with Aces
-      if (this.playerScore === 22) {
-        this.playerScore -= 10;
-        this.playerScoreBox.innerHTML = 'Player: ' + this.playerScore;
-      }
-
       // keep separate score of player aces
       if (this.playerHand[1].cardValue == 'Ace') {
         this.playerAceScore += 11;
+        // Deal with Aces
+        if (this.playerScore === 22) {
+          this.playerScore -= 10;
+          this.playerAceScore -= 10;
+          this.playerScoreBox.innerHTML = 'Player: ' + this.playerScore;
+        }
       }
     }, 3000); // Player second card
 
@@ -162,13 +189,14 @@ class Blackjack {
       // Add value to
       this.dealerScore += this.dealerHand[1].numVal;
 
-      if (this.dealerScore === 22) {
-        this.dealerScore -= 10;
-        this.dealerScoreBox.innerHTML = '';
-      }
-      // keep separate score of player aces
       if (this.dealerHand[1].cardValue == 'Ace') {
         this.dealerAceScore += 11;
+        if (this.dealerScore === 22) {
+          this.dealerScore -= 10;
+          this.dealerAceScore -= 10;
+          this.dealerScoreBox.innerHTML = '';
+          // keep separate score of player aces
+        }
       }
     }, 4000); // Dealer second card
 
@@ -300,18 +328,18 @@ class Blackjack {
 
     /*
       Rules for dealer:
-        If the dealer score is less than 17(or exactly 17 with an ace), dealer must draw
-          If less than 17, always draw
-          If exactly 17 with a high-value ace, draw
-          If 17 or more, round ends
-        If the dealer busts with a high-value ace, lower the score by 10
-        If the dealer busts without an ace, player wins
+    #    If the dealer score is less than 17(or exactly 17 with an ace), dealer must draw
+    #      If less than 17, always draw
+    #      If exactly 17 with a high-value ace, draw
+    #      If 17 or more, round ends
+    #    If the dealer busts with a high-value ace, lower the score by 10
+    #    If the dealer busts without an ace, player wins
         Repeat until round ends
         
       Round ends:
-        If dealer score is greater than player score, dealer wins
-        If player score is greater than dealer score, player wins
-        If scores are equal, declare push
+    #    If dealer score is greater than player score, dealer wins
+    #    If player score is greater than dealer score, player wins
+    #    If scores are equal, declare push
     */
 
     setTimeout(() => {
@@ -327,14 +355,71 @@ class Blackjack {
         // output the card pic to the dealer card box
         this.dealerCardBox.appendChild(cardPic);
 
-        this.dealerScore += this.dealerCard.numVal;
+        if (this.dealerCard.cardValue === 'Ace') {
+          // Make the ace worth 11 if the dealer score is low
+          if (this.dealerScore < 11) {
+            this.dealerAceScore += 11;
+            this.dealerScore += 11;
+          } else {
+            // Else, make the ace worth 1
+            this.dealerAceScore++;
+            this.dealerScore++;
+          }
+        } else {
+          // If it's not an ace, just take the value.
+          this.dealerScore += this.dealerCard.numVal;
+        }
+      }
+      this.dealerScoreBox.innerHTML = 'Dealer: ' + this.dealerScore;
+
+      // if dealer busts
+      if (this.dealerScore >= 21) {
+        // Check for an ace to save them
+        if (this.dealerAceScore >= 11) {
+          // Save the dealer, lower the ace
+          this.dealerScore -= 10;
+          this.dealerAceScore -= 10;
+          this.dealerScoreBox.innerHTML = 'Dealer: ' + this.dealerScore;
+        } else {
+          // Dealer busts
+          // Player wins
+          this.messageBox.innerHTML = 'DEALER BUSTS!<br/>YOU WIN!';
+          this.myMoney += 15;
+          this.moneyBox.innerHTML = '$' + this.myMoney;
+          return;
+        }
       }
 
       if (
         this.dealerScore < 17 ||
         (this.dealerScore == 17 && this.dealerAceScore >= 11)
       ) {
+        // Draw another card
         this.stand();
+      } else {
+        // Dealer stands
+        // Evaluate game state: Did player win, did dealer win, or did they push/tie
+
+        // Player wins
+        if (this.playerScore > this.dealerScore) {
+          this.messageBox.innerHTML = 'YOU WIN!';
+          this.myMoney += 15;
+          this.moneyBox.innerHTML = '$' + this.myMoney;
+        }
+
+        // Dealer wins
+        if (this.dealerScore > this.playerScore) {
+          this.messageBox.innerHTML = 'DEALER WINS!';
+        }
+
+        // Push
+        if (this.dealerScore === this.playerScore) {
+          this.messageBox.innerHTML = 'PUSH!';
+          this.myMoney += 10;
+          this.moneyBox.innerHTML = '$' + this.myMoney;
+        }
+
+        return;
       }
     }, 2500); // setTimeout
   }
