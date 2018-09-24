@@ -298,6 +298,22 @@ class Blackjack {
       this.dealerScoreBox.innerHTML = 'Dealer: ' + this.dealerScore;
     }, 1250);
 
+    /*
+      Rules for dealer:
+        If the dealer score is less than 17(or exactly 17 with an ace), dealer must draw
+          If less than 17, always draw
+          If exactly 17 with a high-value ace, draw
+          If 17 or more, round ends
+        If the dealer busts with a high-value ace, lower the score by 10
+        If the dealer busts without an ace, player wins
+        Repeat until round ends
+        
+      Round ends:
+        If dealer score is greater than player score, dealer wins
+        If player score is greater than dealer score, player wins
+        If scores are equal, declare push
+    */
+
     setTimeout(() => {
       // If the dealer should grab another card, make them
       if (
